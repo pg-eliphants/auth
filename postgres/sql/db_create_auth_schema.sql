@@ -19,14 +19,19 @@ CREATE TABLESPACE auth_storage OWNER authenticator LOCATION '/data/authenticatio
 
 SET default_tablespace = auth_storage;
 
-CREATE SEQUENCE auth.seq_user_id AS integer CACHE 500;
+-- not needed
+-- CREATE SEQUENCE auth.seq_user_id AS integer CACHE 500;
 
 
 CREATE TABLE auth.user (
-    id integer NOT NULL DEFAULT nextval('auth.seq_user_id'),
+    id integer GENERATED ALWAYS AS IDENTITY (CACHE 500), -- CACHE 500 are sequence props, you can specifiy
     cr_ts timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_user PRIMARY KEY (id)
 );
+
+-- moving table to new owner also moves sequence to new owner
+-- "pg_indexes" does not have ownership information but can imagine this is moved to new owner aswell
+alter table auth.user owner to authenticator;
 
 ALTER SEQUENCE auth.seq_user_id OWNED BY auth.user.id;
 
