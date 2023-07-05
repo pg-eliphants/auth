@@ -22,7 +22,6 @@ SET default_tablespace = auth_storage;
 -- not needed
 -- CREATE SEQUENCE auth.seq_user_id AS integer CACHE 500;
 
-
 CREATE TABLE auth.user (
     id integer GENERATED ALWAYS AS IDENTITY (CACHE 500), -- CACHE 500 are sequence props, you can specifiy
     cr_ts timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
