@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyServerOptions } from 'fastify';
 import fastify from 'fastify';
 
 // import all the apps you want to add to the server (root context)
-import setupSomeApp from './apps/some-app';
+import setupSomeApp from './apps/auth';
 
 interface CallBack {
     (root: FastifyInstance): void;

@@ -83,6 +83,8 @@ CREATE TABLE auth.user_props_bin (
 CREATE INDEX user_props_bin_idx ON auth.user_props_bin(UPPER(type), fk_user_id);
 CREATE INDEX user_props_bin_idx2 ON auth.user_props_bin(fk_user_id, UPPER(type));
 
+alter table auth.user_props_bin owner to authenticator;
+
 -- 
 -- postgres=# select * from pg_indexes view where tablespace = 'auth_storage';
 --  schemaname |    tablename    |      indexname      |  tablespace  |                                               indexdef

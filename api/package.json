@@ -35,7 +35,8 @@
   "dependencies": {
     "fastify": "4.19.2",
     "fastify-raw-body": "4.2.0",
-    "http-status-codes": "2.2.0"
+    "http-status-codes": "2.2.0",
+    "postgres": "github:porsager/postgres#connection-stats"
   },
   "devDependencies": {
     "@babel/core": "7.22.8",
