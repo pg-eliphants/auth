@@ -1,0 +1,63 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"],
+  "files": ["src/boot.ts"],
+  "typeAcquisition": {
+    "enable": true,
+    "disableFilenameBasedTypeAcquisition": true
+  },
+  "compilerOptions": {
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitThis": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "strict": true,
+
+    "allowUmdGlobalAccess": false,
+    "baseUrl": "./src",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "paths": {},
+    "resolveJsonModule": true,
+    "types": ["node", "jest"],
+    "typeRoots": ["node_modules/@types"],
+
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "dist/types",
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "outDir": "dist",
+    "preserveConstEnums": true,
+    "exactOptionalPropertyTypes": false,
+    "stripInternal": true,
+    "checkJs": true,
+    "plugins": [
+      {
+        "name": "typescript-eslint-language-service"
+      },
+    ],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": false,
+    "forceConsistentCasingInFileNames": true,
+    "preserveSymlinks": true,
+
+    "lib": ["es2020"],
+    "target": "es2020",
+
+    "explainFiles": false,
+    "extendedDiagnostics": true,
+    "listEmittedFiles": true,
+    "listFiles": true,
+    "traceResolution": false,
+
+    "composite": false,
+    "incremental": false
+  }
+}

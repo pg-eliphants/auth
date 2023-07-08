@@ -1,7 +1,9 @@
 version: "2.15.1"
 services:
-  db:
-    image: postgres:latest
+   db:
+    image: postgres_auth
+    container_name: postgres_auth
+    build: ./db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -9,7 +11,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db:/var/lib/postgresql/data
+      - db-pgdata:/var/lib/postgresql/data   
+      - db-extra-data:/data
 volumes:
-  db:
+  db-pgdata:
     driver: local
+  db-extra-data:
+    driver: local  
