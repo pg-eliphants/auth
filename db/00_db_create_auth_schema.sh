@@ -2,37 +2,21 @@
 #!/bin/bash
 set -e
 
-mkdir -p /data/authentication
-chown -R postgres:postgres /data/authentication
-
 psql -v ON_ERROR_STOP=1 <<EOSQL
 -- fail on the first error
 \set ON_ERROR_STOP on
 
-CREATE ROLE authenticator WITH NOINHERIT;
-    -- default NOSUPERUSER
-    -- default NOCREATEDB
-    -- default NOCREATEROLE
-    -- default NOLOGIN
-    -- default NOREPLICATION 
-    -- default NOBYPASSRLS
-    -- default CONNECTION LIMIT -1 -- -1 = no limit
+CREATE ROLE authenticator WITH NOINHERIT NOLOGIN;
 
--- directory '/data/authentication' must exist and user postgres must be sole owner
-CREATE TABLESPACE auth_storage OWNER authenticator LOCATION '/data/authentication';
-SET default_tablespace = auth_storage;
+CREATE DATABASE auth_db WITH CONNECTION LIMIT = -1;
 
-CREATE DATABASE auth_db
-    WITH
-    TABLESPACE auth_storage
-    CONNECTION LIMIT = -1;
+\c auth_db
+
+-- create a schema in the database "auth_db"
 
 CREATE SCHEMA auth AUTHORIZATION authenticator;
 
 ALTER ROLE authenticator SET search_path = auth;
-
--- not needed
--- CREATE SEQUENCE auth.seq_user_id AS integer CACHE 500;
 
 -- also an index (pk_user) will be created with the same name as the constraint 
 CREATE TABLE auth.user (
