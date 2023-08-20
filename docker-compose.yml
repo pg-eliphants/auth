@@ -1,7 +1,7 @@
 version: "2.15.1"
 services:
   db:
-    image: postgres:latest
+    image: postgres:16beta3
     container_name: postgres_auth
     environment:
       - POSTGRES_USER=postgres
@@ -10,14 +10,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db-pgdata:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
       - ./db/00_db_create_auth_schema.sh:/docker-entrypoint-initdb.d/00_db_create_auth_schema.sh
       - ./db/10_db_create_test-roles.sh:/docker-entrypoint-initdb.d/10_db_create_test-roles.sh
       - ./db/20_replace_[pg-hba.conf].sh:/docker-entrypoint-initdb.d/20_replace_[pg-hba.conf].sh
-      - ./host.crt:/docker-entrypoint-initdb.d/server.crt
-      - ./host.key:/docker-entrypoint-initdb.d/server.key
-      - ./ca.crt:/docker-entrypoint-initdb.d/ca.crt
+      - ./certs/host.crt:/docker-entrypoint-initdb.d/server.crt
+      - ./certs/host.key:/docker-entrypoint-initdb.d/server.key
+      - ./certs/ca.crt:/docker-entrypoint-initdb.d/ca.crt
       - ./db/30_ssl_setup.sh:/docker-entrypoint-initdb.d/30_ssl_setup.sh
 volumes:
-  db-pgdata:
+  db:
     driver: local
