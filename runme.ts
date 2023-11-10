@@ -1,6 +1,8 @@
 import PG from "pg";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-function login_nossl_nopassword() {
+function login() {
   return new PG.Client({
     host: "localhost",
     port: 5432,
@@ -8,7 +10,7 @@ function login_nossl_nopassword() {
     user: "role_ssl_passwd",
     password: "role_ssl_passwd",
     ssl: {
-      rejectUnauthorized: false,
+      ca: readFileSync(resolve("./certs/ca.crt")),
     },
     // will crash backend for some reason binary: true,
   });
@@ -38,14 +40,15 @@ async function testConnection(connection: () => PG.Client) {
       text: "select oid, typname from pg_type where typname = $1",
       values: ["bool"],
     });
-    console.log("prepare plan rows: [%o]", rows);
+    //console.log("prepare plan rows: [%o]", rows);
   }
   await delay(3);
   {
-    const rows = await cl.query({
+    const result = await cl.query({
       text: "select * from pg_prepared_statements",
     });
-    console.log("query pg_prepared_statements: [%o]", rows);
+    console.log("query pg_prepared_statements fields: [%o]", result.fields);
+    console.log("query pg_prepared_statements rows: [%o]", result.rows);
   }
   /*await new Promise((resolve) => setTimeout(resolve, 3e3));
   {
@@ -56,4 +59,4 @@ async function testConnection(connection: () => PG.Client) {
   }*/
 }
 
-testConnection(login_nossl_nopassword);
+testConnection(login);

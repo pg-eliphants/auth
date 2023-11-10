@@ -23,5 +23,5 @@ hostnossl           auth_db     role_nossl_nopasswd     0.0.0.0/0   trust
 hostnossl           auth_db     role_nossl_passwd       0.0.0.0/0   password
 hostssl             auth_db     role_ssl_nopasswd       0.0.0.0/0   trust  
 hostssl             auth_db     role_ssl_passwd         0.0.0.0/0   password 
-host all all all scram-sha-256
+host                all         all                     all         scram-sha-256
 EOF
