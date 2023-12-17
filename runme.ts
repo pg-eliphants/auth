@@ -28,7 +28,7 @@ async function testConnection(connection: () => PG.Client) {
       name: "foobar",
       //portal: "foobar",
       // types: [],
-      text: "select oid::oid from pg_type where typname = $1",
+      text: "select oid::oid from pg_type where typname = $1::name",
       values: ["bool"],
       types4: [19], // oid type is "name", if you put 16 (boolean) type there will be an error
     });
