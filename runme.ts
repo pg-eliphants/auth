@@ -4,25 +4,15 @@ import { resolve } from "node:path";
 
 function login() {
   return new PG.Client({
-    host: "localhost",
     port: 5432,
     database: "auth_db",
-    user: "role_ssl_passwd",
-    password: "role_ssl_passwd",
+    user: "role_ssl_nopasswd",
     ssl: {
       ca: readFileSync(resolve("./certs/ca.crt")),
     },
     // will crash backend for some reason binary: true,
   });
 }
-
-const query1 = {
-  text: "PREPARE fooplanx (varchar) AS select oid, typname from pg_type where typname = $1",
-};
-
-const query2 = {
-  text: "select * from pg_prepared_statements",
-};
 
 function delay(ts_in_sec: number) {
   const ts_in_ms = Math.trunc(ts_in_sec * 1e3);
@@ -37,8 +27,10 @@ async function testConnection(connection: () => PG.Client) {
     const rows = await cl.query({
       name: "foobar",
       //portal: "foobar",
-      text: "select oid, typname from pg_type where typname = $1",
+      // types: [],
+      text: "select oid::oid from pg_type where typname = $1",
       values: ["bool"],
+      types4: [19], // oid type is "name", if you put 16 (boolean) type there will be an error
     });
     //console.log("prepare plan rows: [%o]", rows);
   }

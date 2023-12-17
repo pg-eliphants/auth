@@ -4,7 +4,7 @@
   "description": "authentication service based with postgres backend",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx runme.ts",
     "start": "node  --enable-source-maps   out.js"
   },
   "keywords": [],
@@ -12,10 +12,12 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "buffer-hexdump": "1.0.0",
     "pg": "^8.11.3"
   },
   "devDependencies": {
     "esbuild": "^0.19.2",
-    "prettier": "^3.0.2"
+    "prettier": "^3.0.2",
+    "tsx": "4.6.2"
   }
 }
