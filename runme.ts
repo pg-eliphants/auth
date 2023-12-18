@@ -1,6 +1,6 @@
-import PG from "pg";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import PG from 'pg';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 function login() {
   return new PG.Client({
@@ -24,17 +24,17 @@ async function testConnection(connection: () => PG.Client) {
   const cl = connection();
   await cl.connect();
   {
-    const rows = await cl.query({
+    const result = await cl.query({
       name: "foobar",
       //portal: "foobar",
       // types: [],
-      text: "select oid::oid from pg_type where typname = $1::name",
-      values: ["bool"],
+      text: "select oid::oid from pg_type where typname = $1::text",
+      values: ["int4"],
       types4: [19], // oid type is "name", if you put 16 (boolean) type there will be an error
     });
-    //console.log("prepare plan rows: [%o]", rows);
+    console.log("prepare plan rows: [%o]", result.rows);
   }
-  await delay(3);
+  await delay(1);
   {
     const result = await cl.query({
       text: "select * from pg_prepared_statements",
