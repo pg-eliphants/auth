@@ -5,7 +5,8 @@ function login() {
   return new PG.Client({
     port: 5432,
     database: "auth_db",
-    user: "role_ssl_nopasswd",
+    user: "role_ssl_passwd",
+    password: "role_ssl_passwd",
     ssl: {
       ca: readFileSync(resolve("./certs/ca.crt")),
     },
@@ -20,20 +21,22 @@ async function testConnection(connection) {
   const cl = connection();
   await cl.connect();
   {
-    const rows = await cl.query({
+    const result = await cl.query({
       name: "foobar",
-      //portal: "foobar",
-      text: "select oid, typname from pg_type where typname = $1",
-      values: ["bool"],
+      portal: "foobar",
+      text: "select cr_ts, id  from auth.user where id > $1",
+      values: [99],
     });
+    console.log("query pg_prepared_statements fields: [%o]", result.fields);
+    console.log("query pg_prepared_statements rows: [%o]", result.rows);
   }
-  await delay(3);
+  /*await delay(3);
   {
     const result = await cl.query({
       text: "select * from pg_prepared_statements",
     });
     console.log("query pg_prepared_statements fields: [%o]", result.fields);
     console.log("query pg_prepared_statements rows: [%o]", result.rows);
-  }
+  }*/
 }
 testConnection(login);
