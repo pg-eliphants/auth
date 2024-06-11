@@ -104,7 +104,6 @@ insert into event_locations (id, id_profile, id_event, name) values
 (2, 'a2956ee067974063866da08d1b210bff'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid, 'The Plaza Hotel'),
 (3, '01e17d18de5e42b58a093d344cd575e0'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid, 'Brooklyn Expo Center'),
 (4, '01e17d18de5e42b58a093d344cd575e0'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid, 'The Brooklyn Navy Yard'),
-(5, '29374be133f9424ca494fd6cc050c422'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid, 'Museum of Modern Art (MoMA)');
 
 --
 -- for event 'Blockchain Technology: Beyond Cryptocurrencies', we have these proposed places
@@ -151,10 +150,10 @@ insert into event_times(id, id_profile, id_event, start_time, end_time) VALUES
 -- multiple proposed dates by "Madison Miller"
 --
 insert into event_times(id, id_profile, id_event, start_time, end_time) VALUES
-(11, '8c980acfe39149d387019aa39a84ef71'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid,  '2024-08-05 09:00:00'::timestamp, '2024-08-18 17:00:00'::timestamp),
-(12, '8c980acfe39149d387019aa39a84ef71'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid,  '2024-08-09 09:00:00'::timestamp, '2024-08-19 17:00:00'::timestamp),
-(13, '8c980acfe39149d387019aa39a84ef71'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid,  '2024-08-14 09:00:00'::timestamp, '2024-08-20 17:00:00'::timestamp),
-(14, '8c980acfe39149d387019aa39a84ef71'::uuid, '268ccfd9c921469e953bfb2568728fe0'::uuid,  '2024-08-16 09:00:00'::timestamp, '2024-08-21 17:00:00'::timestamp);
+(11, '8c980acfe39149d387019aa39a84ef71'::uuid, '83b812d1a1f14040b4ff9318abda0547'::uuid,  '2024-08-05 09:00:00'::timestamp, '2024-08-18 17:00:00'::timestamp),
+(12, '8c980acfe39149d387019aa39a84ef71'::uuid, '83b812d1a1f14040b4ff9318abda0547'::uuid,  '2024-08-09 09:00:00'::timestamp, '2024-08-19 17:00:00'::timestamp),
+(13, '8c980acfe39149d387019aa39a84ef71'::uuid, '83b812d1a1f14040b4ff9318abda0547'::uuid,  '2024-08-14 09:00:00'::timestamp, '2024-08-20 17:00:00'::timestamp),
+(14, '8c980acfe39149d387019aa39a84ef71'::uuid, '83b812d1a1f14040b4ff9318abda0547'::uuid,  '2024-08-16 09:00:00'::timestamp, '2024-08-21 17:00:00'::timestamp);
 
 -- bump the "event_times_id_seq" to above 100;
 ALTER SEQUENCE event_times_id_seq RESTART WITH 100;
@@ -162,8 +161,73 @@ ALTER SEQUENCE event_times_id_seq RESTART WITH 100;
 -- Now we start collecting votes over time on event_time_votes and event_location_votes
 -- votes intersperced with constant time delta, but that is just to make easy vote mocking
 -- event time ids voted for, 30 votes
--- event time votes: [13  1 11  1 13 12 12 11 12  5  5 13  1  5  5  3 14  1  1 14  5  5  3  5 12  5  1 11 11  1]
--- event location votes: [5 13  5 13  1  3  1  5 13  5 13 11  3  3 11  2  1  1 13 13  5 14  1 13  5  1  5  4 13 13]
+-- random vent time votes: [13  1 11  1 13 12 12 11 12  13  1  3 14  1  1 14  3  5 12  1 11 11  1]
+-- random event location votes: [13  13  1  3  1  13  13 11  3  3 11  2  1  1 13 13  14  1 13  1  4 13 13]
+
+-- 20 profiles randomly selected (without replacement) for voting (time and location)
+-- random profiles executing their time votes [6 35 26  5 28 14 37 23 34 32 40  7 27 12  4 15 10 30 20 29 24 33]
+-- rannom profiles executing their location votes [37 22  8 20 29 19 32 26 11 24 16 12 35  1  4  5 13  7 28 40 14  6]
+
+with sampled_profils as (select 
+  unnest(
+     ARRAY([37, 22,  8, 20, 29, 19, 32, 26, 11, 24, 16, 12, 35,  1,  4,  5, 13,  7, 28, 40, 14,  6])
+  ) as rownr
+),
+user_profiles_ordered as (select
+   select id, row_number() over() as rn from profiles;
+),
+select 
+   upo.id,
+   sp.rownr
+from 
+   user_profiles_ordered upo    
+   -- TODO I AM HERE
+
+
+insert into event_time_votes(id_time, id_profile, voted_at)
+with sampled as (
+  select 
+    unnest(
+      ARRAY[13, 1, 11, 1, 13, 12, 12, 11, 12, 
+      13, 1, 3, 14, 1, 1, 14, 3, 12, 1, 11, 11, 
+      1]
+    ) as id
+), 
+ordered as (
+  select 
+    id, 
+    row_number() over() as rn 
+  from 
+    sampled
+), 
+random_voting_times as (
+  select 
+    o.id, 
+    o.rn, 
+    to_timestamp(
+      extract(
+        epoch 
+        from 
+          '2024-11-11 12:00:00' :: timestamp
+      )+ 60 *(o.rn * 10 - 4 * random()) 
+    ) at time zone 'utc' as time_of_vote 
+  from 
+    ordered as o
+) 
+select 
+  rvt.id, 
+  rvt.rn, 
+  et.id_event, 
+  rvt.time_of_vote 
+from 
+  random_voting_times as rvt 
+  left join event_times as et on (et.id = rvt.id) 
+order by 
+  rn;
+     
+
+
+   
 
 DROP TABLE IF EXISTS event_time_votes;
 CREATE TABLE event_time_votes (
