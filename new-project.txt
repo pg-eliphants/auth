@@ -158,77 +158,6 @@ insert into event_times(id, id_profile, id_event, start_time, end_time) VALUES
 -- bump the "event_times_id_seq" to above 100;
 ALTER SEQUENCE event_times_id_seq RESTART WITH 100;
 
--- Now we start collecting votes over time on event_time_votes and event_location_votes
--- votes intersperced with constant time delta, but that is just to make easy vote mocking
--- event time ids voted for, 30 votes
--- random vent time votes: [13  1 11  1 13 12 12 11 12  13  1  3 14  1  1 14  3  5 12  1 11 11  1]
--- random event location votes: [13  13  1  3  1  13  13 11  3  3 11  2  1  1 13 13  14  1 13  1  4 13 13]
-
--- 20 profiles randomly selected (without replacement) for voting (time and location)
--- random profiles executing their time votes [6 35 26  5 28 14 37 23 34 32 40  7 27 12  4 15 10 30 20 29 24 33]
--- rannom profiles executing their location votes [37 22  8 20 29 19 32 26 11 24 16 12 35  1  4  5 13  7 28 40 14  6]
-
-with sampled_profils as (select 
-  unnest(
-     ARRAY([37, 22,  8, 20, 29, 19, 32, 26, 11, 24, 16, 12, 35,  1,  4,  5, 13,  7, 28, 40, 14,  6])
-  ) as rownr
-),
-user_profiles_ordered as (select
-   select id, row_number() over() as rn from profiles;
-),
-select 
-   upo.id,
-   sp.rownr
-from 
-   user_profiles_ordered upo    
-   -- TODO I AM HERE
-
-
-insert into event_time_votes(id_time, id_profile, voted_at)
-with sampled as (
-  select 
-    unnest(
-      ARRAY[13, 1, 11, 1, 13, 12, 12, 11, 12, 
-      13, 1, 3, 14, 1, 1, 14, 3, 12, 1, 11, 11, 
-      1]
-    ) as id
-), 
-ordered as (
-  select 
-    id, 
-    row_number() over() as rn 
-  from 
-    sampled
-), 
-random_voting_times as (
-  select 
-    o.id, 
-    o.rn, 
-    to_timestamp(
-      extract(
-        epoch 
-        from 
-          '2024-11-11 12:00:00' :: timestamp
-      )+ 60 *(o.rn * 10 - 4 * random()) 
-    ) at time zone 'utc' as time_of_vote 
-  from 
-    ordered as o
-) 
-select 
-  rvt.id, 
-  rvt.rn, 
-  et.id_event, 
-  rvt.time_of_vote 
-from 
-  random_voting_times as rvt 
-  left join event_times as et on (et.id = rvt.id) 
-order by 
-  rn;
-     
-
-
-   
-
 DROP TABLE IF EXISTS event_time_votes;
 CREATE TABLE event_time_votes (
   id_time INT8 NOT NULL,
@@ -239,6 +168,84 @@ CREATE TABLE event_time_votes (
   CONSTRAINT event_time_votes_id_profile_fkey FOREIGN KEY (id_profile) REFERENCES profiles (id)
 );
 
+-- Now we start collecting votes over time on event_time_votes and event_location_votes
+-- votes intersperced with constant time delta, but that is just to make easy vote mocking
+-- event time ids voted for, 30 votes
+-- 22 random event time votes: [13  1 11  1 13 12 12 11 12  13  1  3 14  1  1 14  3 12  1 11 11  1]
+-- 22 random event location votes: [13  13  1  3  1  13  13 11  3  3 11  2  1  1 13 13  14  1 13  1  4 13 13]
+
+-- profiles randomly selected (without replacement) for voting (time and location)
+-- 22 random profiles executing their location votes [6  35 26 28 14 37 23 34 32 40  7 27 12  4 15 5 10 30 20 29 24 33]
+-- 22 random profiles executing their time votes     [37 22  8 20 29 19 32 26 11 24 16 12 35  1  4 5 13  7 28 40 14  6]
+
+---
+--   insert random voting data into event_time_votes
+---
+insert into event_time_votes(id_time, id_profile, voted_at)
+with 
+sampled_profiles as (
+  select 
+    unnest(
+      ARRAY[37, 22,  8, 20, 29, 19, 32, 26, 11, 24, 16, 12, 35,  1,  4,  5, 13,  7, 28, 40, 14,  6]
+    ) as rownr
+),
+user_profiles_ordered as (
+   select id, row_number() over() as rownr from profiles
+),
+selected_profiles as (
+  select  
+    upo.id,
+    row_number() over() as rownr 
+  from 
+    sampled_profiles as sp 
+    LEFT JOIN user_profiles_ordered as upo  on (sp.rownr = upo.rownr)
+),
+sampled_for_event_times as (
+  select 
+    unnest(
+      ARRAY[13, 1, 11, 1, 13, 12, 12, 11, 12, 
+      13, 1, 3, 14, 1, 1, 14, 3, 12, 1, 11, 11, 
+      1]
+    ) as id
+), 
+ordered as (
+  select 
+    id, 
+    row_number() over() as rownr 
+  from 
+    sampled_for_event_times
+), 
+random_voting_times as (
+  select 
+    o.id, 
+    o.rownr,
+    to_timestamp(
+      extract(
+        epoch 
+        from 
+          '2024-11-11 12:00:00' :: timestamp
+      )+ 60 *(o.rownr * 10 - 4 * random()) 
+    ) at time zone 'utc' as time_of_vote 
+  from 
+    ordered as o
+) 
+select 
+  rvt.id as id_time, 
+  sp.id as id_profile,
+  --rvt.rownr, 
+  --sp.rownr,
+  --et.id_event, 
+  rvt.time_of_vote voted_at
+from 
+  random_voting_times as rvt 
+  left join event_times as et on (et.id = rvt.id) 
+  left join selected_profiles as sp on (sp.rownr = rvt.rownr)
+order by 
+  rvt.rownr;
+
+
+
+DROP TABLE IF EXISTS event_location_votes;
 CREATE TABLE event_location_votes (
   id_location INT8 NOT NULL,
   id_profile UUID NOT NULL,
@@ -246,5 +253,74 @@ CREATE TABLE event_location_votes (
   CONSTRAINT event_location_votes_pkey PRIMARY KEY (id_profile, id_location),
   CONSTRAINT event_location_votes_id_location_fkey FOREIGN KEY (id_location) REFERENCES event_locations (id),
   CONSTRAINT event_location_votes_id_profile_fkey FOREIGN KEY (id_profile) REFERENCES profiles (id)
-);
+);     
+
+---
+--   insert random voting data into event_time_votes
+---
+
+
+insert into event_location_votes(id_location, id_profile, voted_at)
+with 
+sampled_profiles as (
+  select 
+    unnest(
+        ARRAY[06,35,26, 28, 14, 37, 23, 34, 32, 40, 07, 27, 12,  4, 15, 05, 10, 30, 20, 29, 24, 33]
+    ) as rownr
+),
+user_profiles_ordered as (
+   select id, row_number() over() as rownr from profiles
+),
+selected_profiles as (
+  select  
+    upo.id,
+    row_number() over() as rownr 
+  from 
+    sampled_profiles as sp 
+    LEFT JOIN user_profiles_ordered as upo  on (sp.rownr = upo.rownr)
+),
+sampled_for_event_times as (
+  select 
+    unnest(
+      ARRAY[13,13,  1, 3,  1, 13, 13, 11,  3,  3,11, 2,  1, 1,13, 13,14,  1,13,  1,  4, 13]
+    ) as id
+), 
+ordered as (
+  select 
+    id, 
+    row_number() over() as rownr 
+  from 
+    sampled_for_event_times
+), 
+random_voting_times as (
+  select 
+    o.id, 
+    o.rownr,
+    to_timestamp(
+      extract(
+        epoch 
+        from 
+          '2024-11-11 12:00:00' :: timestamp
+      )+ 60 *(o.rownr * 10 - 4 * random()) 
+    ) at time zone 'utc' as time_of_vote 
+  from 
+    ordered as o
+) 
+select 
+  rvt.id as id_location, 
+  sp.id as id_profile,
+  --rvt.rownr, 
+  --sp.rownr,
+  --et.id_event, 
+  rvt.time_of_vote voted_at
+from 
+  random_voting_times as rvt 
+  left join event_times as et on (et.id = rvt.id) 
+  left join selected_profiles as sp on (sp.rownr = rvt.rownr)
+order by 
+  rvt.rownr;
+
+   
+
+
 
