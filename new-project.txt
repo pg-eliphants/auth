@@ -322,5 +322,7 @@ order by
 
    
 
+final query
 
+with ranked_location as (select id_location, id_event, count(1) over (partition by id_location order by voted_at) as rsum from event_location_votes as a0 left join event_locations as a1 on (a0.id_location = a1.id)) select S0.* from ranked_location S0 where not exists (select  1 from ranked_location S1 where s1.id_event = s0.id_event and s1.rsum > s0.rsum);
 
